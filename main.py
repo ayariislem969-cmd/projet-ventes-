@@ -1,45 +1,54 @@
-import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # ← OBLIGATOIRE pour VS Code
 import matplotlib.pyplot as plt
+import pandas as pd
 
+# ============================================================
 # 1. Lire le fichier CSV
+# ============================================================
 df = pd.read_csv('ventes.csv', sep=';')
 
+# ============================================================
 # 2. Calculs
+# ============================================================
 df['CA_Brut'] = df['Prix'] * df['Quantite']
-df['CA_Net'] = df['CA_Brut'] * (1 - df['Remise'] / 100)
-df['TVA'] = df['CA_Net'] * 0.20
-
-# 🔥 BONUS 1: Arrondi
+df['CA_Net']  = df['CA_Brut'] * (1 - df['Remise'] / 100)
+df['TVA']     = df['CA_Net'] * 0.20
 df = df.round(2)
 
-# 🔥 BONUS 2: Trier du meilleur CA au pire
+# Trier du meilleur CA au pire
 df = df.sort_values(by='CA_Net', ascending=False)
 
-# 3. CA Total
-total_ca = df['CA_Net'].sum()
+# ============================================================
+# 3. Affichage
+# ============================================================
+total_ca      = df['CA_Net'].sum()
+top_product   = df.iloc[0]['ID']
 
-# 4. Meilleur produit
-top_product_id = df.iloc[0]['ID']
-
-# 🔥 BONUS 3: Affichage propre
 print("\n===== RÉSULTATS =====")
-print(df)
-print("\n💰 CA Total:", total_ca)
-print("🏆 Meilleur produit ID:", top_product_id)
+print(df.to_string(index=False))
+print(f"\n💰 CA Total   : {total_ca:.2f} €")
+print(f"🏆 Meilleur produit ID : {top_product}")
 
-# 5. Export CSV
+# ============================================================
+# 4. Export CSV + Excel
+# ============================================================
 df.to_csv('resultats_final.csv', index=False)
-
-# 🔥 BONUS 4: Export Excel
 df.to_excel('resultats_final.xlsx', index=False)
-
 print("\n✅ Fichiers exportés (CSV + Excel)")
 
-# 🔥 BONUS 5: Graphique amélioré
-plt.figure()
-plt.bar(df['ID'].astype(str), df['CA_Net'])
-plt.xlabel('Produit ID')
-plt.ylabel('CA Net')
-plt.title('Chiffre d\'affaires par produit')
-plt.grid()
-plt.show()
+# ============================================================
+# 5. Graphique — sauvegardé en PNG
+# ============================================================
+plt.figure(figsize=(9, 5))
+bars = plt.bar(df['ID'].astype(str), df['CA_Net'], color='skyblue', edgecolor='white')
+plt.title("Chiffre d'Affaires Net par Produit", fontsize=14, fontweight='bold')
+plt.xlabel("ID Produit")
+plt.ylabel("CA Net (€)")
+plt.bar_label(bars, fmt='%.2f', fontsize=9)
+plt.grid(axis='y', linestyle='--', alpha=0.3)
+plt.tight_layout()
+
+plt.savefig('graphique.png', dpi=150)  # ← sauvegarde en image
+print("📊 Graphique sauvegardé : graphique.png")
+plt.close()
